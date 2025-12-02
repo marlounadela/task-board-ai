@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String                    @id @default(cuid())
+  name                  String?
+  email                 String                    @unique
+  emailVerified         DateTime?
+  image                 String?
+  password              String?
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  accounts              Account[]
+  activities            Activity[]
+  boards                Board[]
+  comments              Comment[]
+  notifications         Notification[]
+  passwordResets        PasswordResetToken[]
+  emailVerifications    EmailVerificationToken[]
+  sessions              Session[]
+  assignedTasks         Task[]                     @relation("AssignedTasks")
+  timeEntries           TimeEntry[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Board {
+  id           String     @id @default(cuid())
+  name         String
+  userId       String
+  isArchived   Boolean    @default(false)
+  columnLabels String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  activities   Activity[]
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks        Task[]
+}
+
+model Task {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  status      String      @default("todo")
+  priority    String?
+  dueDate     DateTime?
+  labels      String
+  company     String?
+  position    Int         @default(0)
+  boardId     String
+  assigneeId  String?
+  isArchived  Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  activities  Activity[]
+  comments    Comment[]
+  subtasks    Subtask[]
+  assignee    User?       @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  board       Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  timeEntries TimeEntry[]
+
+  @@index([boardId, status])
+  @@index([boardId, isArchived])
+  @@index([assigneeId])
+  @@index([title])
+  @@index([description])
+  @@index([labels])
+  @@index([company])
+}
+
+model Subtask {
+  id        String   @id @default(cuid())
+  title     String
+  completed Boolean  @default(false)
+  taskId    String
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  taskId    String
+  userId    String
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+}
+
+model TimeEntry {
+  id        String    @id @default(cuid())
+  duration  Int
+  startedAt DateTime
+  endedAt   DateTime?
+  taskId    String
+  userId    String
+  createdAt DateTime  @default(now())
+  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([userId])
+}
+
+/// Records notable actions performed by users across the app for the
+/// dashboard's Recent Activity panel.
+model Activity {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  userId    String
+  taskId    String?
+  boardId   String?
+  createdAt DateTime @default(now())
+  board     Board?   @relation(fields: [boardId], references: [id])
+  task      Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([boardId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  userId    String
+  isRead    Boolean  @default(false)
+  taskId    String?
+  boardId   String?
+  commentId String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@index([taskId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expires   DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@index([expires])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  /// Token used for link-based verification flows.
+  /// Optional because we also support numeric verification codes.
+  token     String?  @unique
+  /// Optional 6-digit verification code used for code-based verification flows.
+  code      String?
+  userId    String
+  expires   DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([code])
+  @@index([userId])
+  @@index([expires])
+}
+
+
