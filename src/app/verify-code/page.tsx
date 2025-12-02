@@ -57,7 +57,9 @@ export default function VerifyCodePage() {
 
       // Refresh the NextAuth session to reflect the verified status
       try {
-        await updateSession();
+        if (updateSession) {
+          await updateSession();
+        }
       } catch (sessionError) {
         console.error("Error updating session:", sessionError);
         // Non-fatal, continue with redirect
@@ -65,14 +67,18 @@ export default function VerifyCodePage() {
 
       // Dispatch a custom event to notify other components (like EditProfileModal)
       try {
-        window.dispatchEvent(new CustomEvent("email-verified", {
-          detail: { verified: true }
-        }));
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("email-verified", {
+            detail: { verified: true }
+          }));
+        }
       } catch {}
 
       // Give the user a moment to read then refresh
       setTimeout(() => {
-        window.location.href = "/";
+        if (typeof window !== "undefined") {
+          window.location.href = "/";
+        }
       }, 2500);
     } catch (err) {
       console.error("Error verifying code:", err);

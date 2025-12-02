@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import "react-quill/dist/quill.snow.css";
 
 // Dynamically import ReactQuill to avoid SSR issues
-// @ts-expect-error - ReactQuill has complex typing that conflicts with Next.js dynamic imports
+// We'll set up the polyfill in the component before rendering
 const ReactQuill = dynamic(() => import("react-quill"), { 
   ssr: false,
   loading: () => <div>Loading editor...</div>
@@ -28,10 +28,68 @@ export function WysiwygEditor({
   className = "",
   error = false,
 }: WysiwygEditorProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Polyfill findDOMNode for react-quill compatibility with React 18
+  // This must run before ReactQuill is rendered
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const ReactDOM = require("react-dom");
+        if (ReactDOM && (typeof ReactDOM.findDOMNode === "undefined" || ReactDOM.findDOMNode === null)) {
+          // Polyfill findDOMNode to work with refs and component instances
+          ReactDOM.findDOMNode = (node: any): Element | Text | null => {
+            if (!node) return null;
+            
+            // If it's a ref object with current property
+            if (node && typeof node === "object" && "current" in node) {
+              const current = node.current;
+              if (current && (current.nodeType === 1 || current.nodeType === 3)) {
+                return current;
+              }
+              return current as Element | null;
+            }
+            
+            // If it's already a DOM element or text node
+            if (node.nodeType === 1 || node.nodeType === 3) {
+              return node;
+            }
+            
+            // If it's a React component instance, try to get the DOM node
+            if (node && typeof node === "object") {
+              // Try to access internal React fiber structure (React 18+)
+              const fiber = (node as any)._reactInternalFiber || 
+                          (node as any)._reactInternalInstance ||
+                          (node as any).__reactInternalInstance;
+              
+              if (fiber) {
+                let currentFiber = fiber;
+                while (currentFiber) {
+                  if (currentFiber.stateNode) {
+                    const stateNode = currentFiber.stateNode;
+                    if (stateNode.nodeType === 1 || stateNode.nodeType === 3) {
+                      return stateNode;
+                    }
+                  }
+                  currentFiber = currentFiber.return;
+                }
+              }
+            }
+            
+            return null;
+          };
+        }
+      } catch (e) {
+        // Ignore errors during polyfill setup
+        console.warn("Failed to polyfill findDOMNode:", e);
+      }
+    }
+    setIsMounted(true);
+  }, []);
 
   // Calculate character count (strip HTML tags for accurate count)
   const characterCount = useMemo(() => {
-    if (!value) return 0;
+    if (!value || typeof document === "undefined") return 0;
     // Create a temporary div to strip HTML tags
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = value;
@@ -66,6 +124,10 @@ export function WysiwygEditor({
 
   // Handle content change
   const handleChange = (content: string) => {
+    if (typeof document === "undefined") {
+      onChange(content);
+      return;
+    }
     // Strip HTML tags to check character count
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = content;
@@ -76,6 +138,17 @@ export function WysiwygEditor({
       onChange(content);
     }
   };
+
+  // Don't render ReactQuill until component is mounted on client
+  if (!isMounted) {
+    return (
+      <div className={`wysiwyg-editor ${className}`}>
+        <div className="border rounded-md border-slate-200 dark:border-slate-700 p-4 min-h-[100px] flex items-center justify-center text-slate-500">
+          Loading editor...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`wysiwyg-editor ${className}`}>

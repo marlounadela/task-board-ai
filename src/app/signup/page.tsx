@@ -21,8 +21,10 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [googleClientId, setGoogleClientId] = useState<string>("");
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     // Fetch Google Client ID from API
     fetch("/api/auth/google-client-id")
       .then((res) => res.json())
@@ -126,7 +128,7 @@ export default function SignUpPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Google Sign Up with Account Picker */}
-          {googleClientId ? (
+          {isMounted && googleClientId ? (
             <GoogleAccountPicker
               clientId={googleClientId}
               callbackUrl="/"

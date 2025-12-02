@@ -1,7 +1,7 @@
 "use client";
 
 import { Zap } from "lucide-react";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 type FooterProps = {
   variant?: "default" | "hero";
@@ -9,6 +9,12 @@ type FooterProps = {
 
 export function Footer({ variant = "default" }: FooterProps) {
   const isHero = variant === "hero";
+  const [currentYear, setCurrentYear] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Set year on client side only to avoid hydration mismatch
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   return (
     <footer
@@ -20,6 +26,7 @@ export function Footer({ variant = "default" }: FooterProps) {
       aria-label="Website footer"
       itemScope
       itemType="https://schema.org/Organization"
+      suppressHydrationWarning
     >
       {/* mirror sheen overlay */}
       <div
@@ -106,8 +113,8 @@ export function Footer({ variant = "default" }: FooterProps) {
 
         {/* bottom separator and copyright */}
         <div className={isHero ? "h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent" : "h-px w-full bg-gradient-to-r from-transparent via-slate-300/40 to-transparent dark:via-white/15"} />
-        <div className={isHero ? "mx-auto max-w-laptop-lg px-4 md:px-6 lg:px-8 py-3 text-center text-xs text-slate-300" : "mx-auto max-w-laptop-lg px-4 md:px-6 lg:px-8 py-3 text-center text-xs text-slate-500 dark:text-slate-400"}>
-          © {new Date().getFullYear()} Task Board AI — Kanban, project planning, and AI productivity.
+        <div className={isHero ? "mx-auto max-w-laptop-lg px-4 md:px-6 lg:px-8 py-3 text-center text-xs text-slate-300" : "mx-auto max-w-laptop-lg px-4 md:px-6 lg:px-8 py-3 text-center text-xs text-slate-500 dark:text-slate-400"} suppressHydrationWarning>
+          © {currentYear ?? new Date().getFullYear()} Task Board AI — Kanban, project planning, and AI productivity.
         </div>
 
         {/* JSON-LD Organization schema */}

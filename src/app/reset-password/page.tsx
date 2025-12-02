@@ -26,7 +26,6 @@ function ResetPasswordForm() {
   const [success, setSuccess] = useState(false);
   const [isTokenValid, setIsTokenValid] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   // Verify token and auto-login if needed
   useEffect(() => {
@@ -47,7 +46,6 @@ function ResetPasswordForm() {
           // If autoLogin is enabled, automatically sign in the user
           if (autoLogin && data.userEmail) {
             setIsAutoLoggingIn(true);
-            setUserEmail(data.userEmail);
             
             try {
               // Get temporary password for auto-login

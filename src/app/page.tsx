@@ -712,18 +712,18 @@ export default function Home() {
   // Render welcome hero whenever not authenticated (includes loading state)
   if (status !== "authenticated") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col">
-        <section className="relative overflow-hidden min-h-screen">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 to-purple-900/50"></div>
-          <nav className="relative z-10 px-6 py-4 border-b border-white/10 bg-white/5 backdrop-blur-md">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex flex-col" suppressHydrationWarning>
+        <section className="relative overflow-hidden min-h-screen" suppressHydrationWarning>
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 to-purple-900/50" suppressHydrationWarning></div>
+          <nav className="relative z-10 px-6 py-4 border-b border-white/10 bg-white/5 backdrop-blur-md" suppressHydrationWarning>
+            <div className="flex items-center justify-between" suppressHydrationWarning>
+              <div className="flex items-center space-x-3" suppressHydrationWarning>
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center" suppressHydrationWarning>
                   <Zap className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold text-white">Task Board AI</span>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-4" suppressHydrationWarning>
                 <Link href="/login">
                   <Button variant="ghost" className="text-white hover:bg-white/10">Sign In</Button>
                 </Link>
@@ -733,38 +733,38 @@ export default function Home() {
               </div>
             </div>
           </nav>
-          <div className="relative z-10 px-6 py-20 text-center">
-            <div className="max-w-4xl mx-auto">
+          <div className="relative z-10 px-6 py-20 text-center" suppressHydrationWarning>
+            <div className="max-w-4xl mx-auto" suppressHydrationWarning>
               <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
                 Boost Your Productivity with
                 <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent"> AI-Powered</span>
                 <br />Task Management
               </h1>
               <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed">Modern, sleek task management platform that combines intuitive design with AI assistance to help you and your team achieve more.</p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12" suppressHydrationWarning>
                 <Link href="/signup">
                   <Button size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-8 py-4 text-lg shadow-2xl hover:shadow-purple-500/25 transition-all duration-300">Start Free Trial</Button>
                 </Link>
                 <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg">Watch Demo</Button>
               </div>
-              <div className="h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent my-10"></div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 mx-auto">
+              <div className="h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent my-10" suppressHydrationWarning></div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16" suppressHydrationWarning>
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300" suppressHydrationWarning>
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mb-4 mx-auto" suppressHydrationWarning>
                     <Zap className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-2">AI-Powered</h3>
                   <p className="text-slate-300">Smart task suggestions, priority optimization, and automated summaries powered by AI.</p>
                 </div>
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300" suppressHydrationWarning>
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center mb-4 mx-auto" suppressHydrationWarning>
                     <Users className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-2">Team Collaboration</h3>
                   <p className="text-slate-300">Seamless collaboration with real-time updates, comments, and shared workspaces.</p>
                 </div>
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300" suppressHydrationWarning>
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mb-4 mx-auto" suppressHydrationWarning>
                     <TrendingUp className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-white mb-2">Analytics & Insights</h3>
@@ -773,29 +773,29 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="relative z-10 px-6 py-16">
-            <div className="max-w-4xl mx-auto">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-                <div>
-                  <div className="text-3xl font-bold text-white mb-2">10K+</div>
-                  <div className="text-slate-300">Active Users</div>
+          <div className="relative z-10 px-6 py-16" suppressHydrationWarning>
+            <div className="max-w-4xl mx-auto" suppressHydrationWarning>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center" suppressHydrationWarning>
+                <div suppressHydrationWarning>
+                  <div className="text-3xl font-bold text-white mb-2" suppressHydrationWarning>10K+</div>
+                  <div className="text-slate-300" suppressHydrationWarning>Active Users</div>
                 </div>
-                <div>
-                  <div className="text-3xl font-bold text-white mb-2">50K+</div>
-                  <div className="text-slate-300">Tasks Completed</div>
+                <div suppressHydrationWarning>
+                  <div className="text-3xl font-bold text-white mb-2" suppressHydrationWarning>50K+</div>
+                  <div className="text-slate-300" suppressHydrationWarning>Tasks Completed</div>
                 </div>
-                <div>
-                  <div className="text-3xl font-bold text-white mb-2">99.9%</div>
-                  <div className="text-slate-300">Uptime</div>
+                <div suppressHydrationWarning>
+                  <div className="text-3xl font-bold text-white mb-2" suppressHydrationWarning>99.9%</div>
+                  <div className="text-slate-300" suppressHydrationWarning>Uptime</div>
                 </div>
-                <div>
-                  <div className="text-3xl font-bold text-white mb-2">4.9★</div>
-                  <div className="text-slate-300">User Rating</div>
+                <div suppressHydrationWarning>
+                  <div className="text-3xl font-bold text-white mb-2" suppressHydrationWarning>4.9★</div>
+                  <div className="text-slate-300" suppressHydrationWarning>User Rating</div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-purple-700/40 to-transparent"></div>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-purple-700/40 to-transparent" suppressHydrationWarning></div>
         </section>
         <Footer variant="hero" />
       </div>
@@ -1055,7 +1055,7 @@ export default function Home() {
   const totalBoards = boards.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex flex-col" suppressHydrationWarning>
       {/* Modern Header */}
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/60 dark:border-slate-700/60 flex-shrink-0">
         <div className="max-w-laptop-lg mx-auto px-6 py-4">

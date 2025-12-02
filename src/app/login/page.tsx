@@ -20,8 +20,10 @@ export default function LoginPage() {
   const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [forgotPasswordSuccess, setForgotPasswordSuccess] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     // Fetch Google Client ID from API
     fetch("/api/auth/google-client-id")
       .then((res) => res.json())
@@ -121,7 +123,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Google Login with Account Picker */}
-          {googleClientId ? (
+          {isMounted && googleClientId ? (
             <GoogleAccountPicker
               clientId={googleClientId}
               callbackUrl="/"

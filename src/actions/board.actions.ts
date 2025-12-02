@@ -16,6 +16,16 @@ export async function getOrCreateMainBoard() {
 
   const userId = session.user.id;
 
+  // Verify the user exists in the database before creating boards
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true }
+  });
+  
+  if (!user) {
+    throw new Error("User not found in database. Please sign in again.");
+  }
+
   // Try to find existing main board for this user
   let board = await prisma.board.findFirst({
     where: { 
@@ -46,6 +56,16 @@ export async function getOrCreateReviewBoard() {
   }
 
   const userId = session.user.id;
+
+  // Verify the user exists in the database before creating boards
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true }
+  });
+  
+  if (!user) {
+    throw new Error("User not found in database. Please sign in again.");
+  }
 
   // Try to find existing review board for this user
   let board = await prisma.board.findFirst({
@@ -86,6 +106,19 @@ export async function getAllBoards() {
   // Keep creation path as-is: if absolutely no boards in the system, seed Main/Review for this user
   if (boards.length === 0) {
     const userId: string = session.user.id;
+    
+    // Verify the user exists in the database before creating boards
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true }
+    });
+    
+    if (!user) {
+      // User doesn't exist in database - return empty array instead of throwing
+      // This can happen if the session is stale or user was deleted
+      return [];
+    }
+    
     const [mainBoard, reviewBoard] = await Promise.all([
       prisma.board.create({
         data: {
@@ -114,6 +147,16 @@ export async function createBoard(name: string) {
   }
 
   const userId = session.user.id;
+
+  // Verify the user exists in the database before creating boards
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true }
+  });
+  
+  if (!user) {
+    throw new Error("User not found in database. Please sign in again.");
+  }
 
   const board = await prisma.board.create({
     data: {

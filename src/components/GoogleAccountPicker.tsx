@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 interface GoogleIdConfiguration {
@@ -24,9 +24,14 @@ declare global {
         id: {
           initialize: (config: GoogleIdConfiguration) => void;
           prompt: (callback?: (notification: GooglePromptNotification) => void) => void;
+          cancel: () => void;
         };
       };
     };
+    __googleOneTapInitialized?: boolean;
+    __googleOneTapActive?: boolean;
+    __gsiErrorSuppressed?: boolean;
+    __gsiOriginalConsoleError?: typeof console.error;
   }
 }
 
@@ -44,11 +49,77 @@ export default function GoogleAccountPicker({
   onError,
 }: GoogleAccountPickerProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const initializedRef = useRef(false);
+  const promptActiveRef = useRef(false);
+  const isMountedRef = useRef(true);
 
   const initializeOneTap = useCallback(() => {
     if (!window.google?.accounts) return;
+    
+    // Prevent multiple initializations with the same client ID
+    if (window.__googleOneTapInitialized) {
+      // If already initialized, only show prompt if not already active and component is mounted
+      if (!window.__googleOneTapActive && !promptActiveRef.current && isMountedRef.current) {
+        try {
+          window.__googleOneTapActive = true;
+          promptActiveRef.current = true;
+
+          window.google.accounts.id.prompt((notification: GooglePromptNotification) => {
+            // Only process notification if component is still mounted
+            if (!isMountedRef.current) {
+              window.__googleOneTapActive = false;
+              promptActiveRef.current = false;
+              return;
+            }
+            
+            window.__googleOneTapActive = false;
+            promptActiveRef.current = false;
+
+            if (notification.isNotDisplayed()) {
+              const reasons = notification.getNotDisplayedReason();
+              console.log("One Tap not displayed:", reasons);
+            } else if (notification.isSkippedMoment()) {
+              console.log("One Tap skipped");
+            } else if (notification.isDismissedMoment()) {
+              console.log("One Tap dismissed");
+            }
+          });
+        } catch (promptError) {
+          window.__googleOneTapActive = false;
+          promptActiveRef.current = false;
+          // Silently handle prompt errors (especially aborted ones)
+          // AbortError and NotAllowedError are expected in certain scenarios
+          if (promptError instanceof Error) {
+            const errorName = promptError.name || "";
+            const errorMessage = promptError.message || "";
+            const isAbortError = errorName === "AbortError" || 
+                                errorMessage.includes("aborted") ||
+                                errorMessage.includes("signal is aborted");
+            const isNotAllowedError = errorName === "NotAllowedError" ||
+                                     errorMessage.includes("NotAllowedError");
+            
+            // Only log unexpected errors
+            if (!isAbortError && !isNotAllowedError) {
+              console.error("Error showing One Tap:", promptError);
+            }
+          }
+        }
+      }
+      return;
+    }
 
     try {
+      // Cancel any existing prompt before initializing
+      if (window.google.accounts.id.cancel) {
+        try {
+          window.google.accounts.id.cancel();
+          window.__googleOneTapActive = false;
+          promptActiveRef.current = false;
+        } catch (cancelError) {
+          // Ignore cancel errors
+        }
+      }
+
       // Initialize One Tap to show saved accounts
       window.google.accounts.id.initialize({
         client_id: clientId,
@@ -59,27 +130,144 @@ export default function GoogleAccountPicker({
         cancel_on_tap_outside: true,
       });
 
-      // Show One Tap (account picker) - displays saved accounts
-      window.google.accounts.id.prompt((notification: GooglePromptNotification) => {
-        if (notification.isNotDisplayed()) {
-          const reasons = notification.getNotDisplayedReason();
-          console.log("One Tap not displayed:", reasons);
-        } else if (notification.isSkippedMoment()) {
-          console.log("One Tap skipped");
-        } else if (notification.isDismissedMoment()) {
-          console.log("One Tap dismissed");
+      window.__googleOneTapInitialized = true;
+      initializedRef.current = true;
+
+      // Only show prompt if no other prompt is active and component is mounted
+      if (!window.__googleOneTapActive && !promptActiveRef.current && isMountedRef.current) {
+        try {
+          window.__googleOneTapActive = true;
+          promptActiveRef.current = true;
+
+          // Show One Tap (account picker) - displays saved accounts
+          window.google.accounts.id.prompt((notification: GooglePromptNotification) => {
+            // Only process notification if component is still mounted
+            if (!isMountedRef.current) {
+              window.__googleOneTapActive = false;
+              promptActiveRef.current = false;
+              return;
+            }
+            
+            window.__googleOneTapActive = false;
+            promptActiveRef.current = false;
+
+            if (notification.isNotDisplayed()) {
+              const reasons = notification.getNotDisplayedReason();
+              console.log("One Tap not displayed:", reasons);
+            } else if (notification.isSkippedMoment()) {
+              console.log("One Tap skipped");
+            } else if (notification.isDismissedMoment()) {
+              console.log("One Tap dismissed");
+            }
+          });
+        } catch (promptError) {
+          window.__googleOneTapActive = false;
+          promptActiveRef.current = false;
+          // Silently handle prompt errors (especially aborted ones)
+          // AbortError and NotAllowedError are expected in certain scenarios
+          if (promptError instanceof Error) {
+            const errorName = promptError.name || "";
+            const errorMessage = promptError.message || "";
+            const isAbortError = errorName === "AbortError" || 
+                                errorMessage.includes("aborted") ||
+                                errorMessage.includes("signal is aborted");
+            const isNotAllowedError = errorName === "NotAllowedError" ||
+                                     errorMessage.includes("NotAllowedError");
+            
+            // Only log unexpected errors
+            if (!isAbortError && !isNotAllowedError) {
+              console.error("Error showing One Tap:", promptError);
+            }
+          }
         }
-      });
+      }
     } catch (error) {
       console.error("Error initializing One Tap:", error);
     }
   }, [clientId]);
 
   useEffect(() => {
+    isMountedRef.current = true;
+    
+    // Suppress Google Sign-In FedCM console errors
+    // Use a shared suppression mechanism to avoid conflicts with multiple instances
+    if (!window.__gsiErrorSuppressed) {
+      const originalConsoleError = console.error;
+      window.__gsiErrorSuppressed = true;
+      window.__gsiOriginalConsoleError = originalConsoleError;
+      
+      const suppressedConsoleError = (...args: unknown[]) => {
+        const errorMessage = args[0];
+        if (
+          typeof errorMessage === 'string' &&
+          (errorMessage.includes('[GSI_LOGGER]') ||
+           errorMessage.includes('FedCM get() rejects') ||
+           (errorMessage.includes('AbortError') && errorMessage.includes('signal is aborted')))
+        ) {
+          // Suppress Google Sign-In related errors
+          return;
+        }
+        originalConsoleError.apply(console, args);
+      };
+      console.error = suppressedConsoleError;
+    }
+    
+    // Skip if already initialized by another instance
+    if (initializedRef.current || window.__googleOneTapInitialized) {
+      // Still need cleanup even if already initialized
+      return () => {
+        isMountedRef.current = false;
+        // Cleanup: cancel prompt when component unmounts (only if this instance started it)
+        if (promptActiveRef.current && window.google?.accounts?.id?.cancel) {
+          try {
+            window.google.accounts.id.cancel();
+            window.__googleOneTapActive = false;
+            promptActiveRef.current = false;
+          } catch (cancelError) {
+            // Ignore cancel errors during cleanup (AbortError is expected)
+          }
+        }
+      };
+    }
+
     // Load Google Identity Services script for One Tap
     if (window.google?.accounts) {
       initializeOneTap();
-      return;
+      // Return cleanup function
+      return () => {
+        isMountedRef.current = false;
+        // Cleanup: cancel prompt when component unmounts
+        if (promptActiveRef.current && window.google?.accounts?.id?.cancel) {
+          try {
+            window.google.accounts.id.cancel();
+            window.__googleOneTapActive = false;
+            promptActiveRef.current = false;
+          } catch (cancelError) {
+            // Ignore cancel errors during cleanup (AbortError is expected)
+          }
+        }
+      };
+    }
+
+    // Check if script is already being loaded
+    const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    if (existingScript) {
+      // Wait for existing script to load
+      existingScript.addEventListener('load', initializeOneTap);
+      return () => {
+        isMountedRef.current = false;
+        existingScript.removeEventListener('load', initializeOneTap);
+        // Cleanup: cancel prompt when component unmounts
+        if (promptActiveRef.current && window.google?.accounts?.id?.cancel) {
+          try {
+            window.google.accounts.id.cancel();
+            window.__googleOneTapActive = false;
+            promptActiveRef.current = false;
+          } catch (cancelError) {
+            // Ignore cancel errors during cleanup (AbortError is expected)
+          }
+        }
+      };
     }
 
     const script = document.createElement("script");
@@ -97,13 +285,32 @@ export default function GoogleAccountPicker({
     document.head.appendChild(script);
 
     return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
+      isMountedRef.current = false;
+      // Cleanup: cancel prompt when component unmounts
+      if (promptActiveRef.current && window.google?.accounts?.id?.cancel) {
+        try {
+          window.google.accounts.id.cancel();
+          window.__googleOneTapActive = false;
+          promptActiveRef.current = false;
+        } catch (cancelError) {
+          // Ignore cancel errors during cleanup (AbortError is expected)
+        }
       }
     };
   }, [clientId, initializeOneTap, onError]);
 
   const handleGoogleSignIn = async () => {
+    // Cancel One Tap prompt when user clicks the button
+    if (window.google?.accounts?.id?.cancel && promptActiveRef.current) {
+      try {
+        window.google.accounts.id.cancel();
+        window.__googleOneTapActive = false;
+        promptActiveRef.current = false;
+      } catch (cancelError) {
+        // Ignore cancel errors
+      }
+    }
+
     setIsLoading(true);
     
     try {

@@ -21,6 +21,8 @@ async function clearAllData() {
       boards: await prisma.board.count(),
       accounts: await prisma.account.count(),
       sessions: await prisma.session.count(),
+      passwordResets: await prisma.passwordResetToken.count(),
+      emailVerifications: await prisma.emailVerificationToken.count(),
       users: await prisma.user.count(),
     };
     
@@ -28,6 +30,8 @@ async function clearAllData() {
     console.log(`   - Users: ${counts.users}`);
     console.log(`   - Accounts: ${counts.accounts}`);
     console.log(`   - Sessions: ${counts.sessions}`);
+    console.log(`   - Password Reset Tokens: ${counts.passwordResets}`);
+    console.log(`   - Email Verification Tokens: ${counts.emailVerifications}`);
     console.log(`   - Boards: ${counts.boards}`);
     console.log(`   - Tasks: ${counts.tasks}`);
     console.log(`   - Subtasks: ${counts.subtasks}`);
@@ -77,6 +81,14 @@ async function clearAllData() {
     const deletedSessions = await prisma.session.deleteMany({});
     console.log(`✅ Deleted ${deletedSessions.count} session records`);
     
+    // Delete PasswordResetToken records
+    const deletedPasswordResets = await prisma.passwordResetToken.deleteMany({});
+    console.log(`✅ Deleted ${deletedPasswordResets.count} password reset token records`);
+    
+    // Delete EmailVerificationToken records
+    const deletedEmailVerifications = await prisma.emailVerificationToken.deleteMany({});
+    console.log(`✅ Deleted ${deletedEmailVerifications.count} email verification token records`);
+    
     // Delete User records (this will cascade delete related records if not already deleted)
     const deletedUsers = await prisma.user.deleteMany({});
     console.log(`✅ Deleted ${deletedUsers.count} user records`);
@@ -93,6 +105,8 @@ async function clearAllData() {
       boards: await prisma.board.count(),
       accounts: await prisma.account.count(),
       sessions: await prisma.session.count(),
+      passwordResets: await prisma.passwordResetToken.count(),
+      emailVerifications: await prisma.emailVerificationToken.count(),
       users: await prisma.user.count(),
     };
     
